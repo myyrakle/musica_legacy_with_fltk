@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 tokio = {version = "1", features = ["full"] }
+gtk = { version = "0.5.4", package = "gtk4" }
