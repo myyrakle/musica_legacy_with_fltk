@@ -1,10 +1,14 @@
-use std::{error::Error, fs, path::Path};
-use thiserror::Error;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use crate::errors::CommonError;
 
+#[derive(Debug, Clone)]
 pub struct FileInfo {
     pub filename: String,
+    pub filepath: PathBuf,
 }
 
 pub fn read_file_list(path: &Path) -> Result<Vec<FileInfo>, CommonError> {
@@ -16,8 +20,9 @@ pub fn read_file_list(path: &Path) -> Result<Vec<FileInfo>, CommonError> {
         if let Ok(read_dir_entry) = read_dir_entry {
             if let Ok(metadata) = read_dir_entry.metadata() {
                 if metadata.is_file() {
-                    //println!("{:?}", metadata)
-                    //file_list.push(FileInfo {filename: metadata.})
+                    let filepath = read_dir_entry.path();
+                    let filename = read_dir_entry.file_name().to_str().unwrap().to_owned();
+                    file_list.push(FileInfo { filename, filepath })
                 }
             }
         }
