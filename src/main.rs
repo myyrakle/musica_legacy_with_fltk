@@ -19,6 +19,33 @@ fn main() {
 
     let mut window = Window::new(100, 100, window_width, window_height, "musica");
 
+    let left_button_width = 40;
+    let left_button_height = 40;
+    let mut left_button = Button::new(0, 0, left_button_width, left_button_height, "⏮️");
+    // left_button.set_color(Color::Green);
+    // left_button.set_label_size(20);
+    // left_button.set_label_font(Font::Courier);
+
+    let stop_button_width = 40;
+    let stop_button_height = 40;
+    let mut stop_button = Button::new(
+        0 + left_button_width,
+        0,
+        stop_button_width,
+        stop_button_height,
+        "⏸️",
+    );
+
+    let right_button_width = 40;
+    let right_button_height = 40;
+    let mut right_button = Button::new(
+        0 + left_button_width + stop_button_width,
+        0,
+        right_button_width,
+        right_button_height,
+        "⏭️",
+    );
+
     let setting_button_width = 80;
     let setting_button_height = 40;
 
@@ -29,7 +56,11 @@ fn main() {
         setting_button_height,
         "Setting",
     );
+
     setting_button.set_callback(move |_| {});
+    left_button.set_callback(move |_| {});
+    stop_button.set_callback(move |_| {});
+    right_button.set_callback(move |_| {});
 
     window.end();
     window.show();
