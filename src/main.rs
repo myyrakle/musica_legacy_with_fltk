@@ -7,7 +7,7 @@ use fltk::{app, button::Button, prelude::*, window::Window};
 use utils::read_file_list;
 
 fn main() {
-    let app = app::App::default();
+    let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
     let path = Path::new("./sample");
 
