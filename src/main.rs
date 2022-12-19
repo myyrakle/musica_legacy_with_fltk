@@ -14,7 +14,9 @@ use crate::{
 };
 
 fn main() {
-    let state = Rc::new(RefCell::new(State::default()));
+    let state = Rc::new(RefCell::new(
+        State::load_from_config_file().unwrap_or(State::default()),
+    ));
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 

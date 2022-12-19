@@ -25,10 +25,14 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
         "⏮️",
     );
 
-    browse_button.set_callback(|_| {
+    browse_button.set_callback(move |_| {
         let mut file_dialog = FileDialog::new(FileDialogType::BrowseDir);
         file_dialog.show();
         let path = file_dialog.filename();
+
+        let mut state = state.borrow_mut();
+        state.set_directory_path(path);
+        state.write_to_config_file();
     });
 
     setting_group.end();

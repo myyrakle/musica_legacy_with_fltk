@@ -46,7 +46,7 @@ pub fn create_main_group(state: SharedState, window_width: i32, window_height: i
 
     left_button.set_callback(move |_| {});
     stop_button.set_callback(move |_| {});
-    right_button.set_callback(move |_| println!(""));
+    right_button.set_callback(move |_| println!("{:?}", state.borrow().directory_path));
 
     main_group.end();
     main_group
