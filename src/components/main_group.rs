@@ -1,6 +1,6 @@
 use fltk::{button::Button, group::Group, prelude::*};
 
-use crate::state::SharedState;
+use crate::types::state::SharedState;
 
 pub fn create_main_group(state: SharedState, window_width: i32, window_height: i32) -> Group {
     let group_top_margin = 30;
@@ -46,7 +46,7 @@ pub fn create_main_group(state: SharedState, window_width: i32, window_height: i
 
     left_button.set_callback(move |_| {});
     stop_button.set_callback(move |_| {});
-    right_button.set_callback(move |_| println!("{:?}", state.borrow().directory_path));
+    right_button.set_callback(move |_| println!("{:?}", state.borrow().config.directory_path));
 
     main_group.end();
     main_group

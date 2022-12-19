@@ -5,7 +5,7 @@ use fltk::{
     prelude::*,
 };
 
-use crate::state::SharedState;
+use crate::types::state::SharedState;
 
 pub fn create_setting_group(state: SharedState, window_width: i32, window_height: i32) -> Group {
     let group_top_margin = 30;

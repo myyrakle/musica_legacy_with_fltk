@@ -1,15 +1,6 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::Path};
 
-use crate::errors::CommonError;
-
-#[derive(Debug, Clone)]
-pub struct FileInfo {
-    pub filename: String,
-    pub filepath: PathBuf,
-}
+use crate::{errors::CommonError, types::file_info::FileInfo};
 
 pub fn read_file_list(path: &Path) -> Result<Vec<FileInfo>, CommonError> {
     let read_dir_result = fs::read_dir(path)?;

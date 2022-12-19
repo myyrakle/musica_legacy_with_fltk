@@ -6,14 +6,24 @@ use std::{
     rc::Rc,
 };
 
+use super::{config::Config, file_info::FileInfo};
+
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct State {
-    pub directory_path: PathBuf,
+    pub config: Config,
+    pub file_list: Vec<FileInfo>,
 }
 
 impl State {
+    pub fn shared() -> SharedState {
+        Rc::new(RefCell::new(Self {
+            config: State::load_from_config_file().unwrap_or(Config::default()),
+            file_list: vec![],
+        }))
+    }
+
     pub fn set_directory_path(&mut self, directory_path: PathBuf) {
-        self.directory_path = directory_path;
+        self.config.directory_path = directory_path;
     }
 
     pub fn write_to_config_file(&self) {
@@ -25,12 +35,12 @@ impl State {
             .open(path)
             .unwrap();
 
-        let json_string = serde_json::to_string(self).unwrap();
+        let json_string = serde_json::to_string(&self.config).unwrap();
 
         file.write_all(json_string.as_bytes()).unwrap();
     }
 
-    pub fn load_from_config_file() -> Option<Self> {
+    fn load_from_config_file() -> Option<Config> {
         let path = "config.json";
         let text = fs::read_to_string(path).ok()?;
 
