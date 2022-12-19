@@ -1,6 +1,8 @@
 use fltk::{button::Button, group::Group, prelude::*};
 
-pub fn create_main_group(window_width: i32, window_height: i32) -> Group {
+use crate::state::SharedState;
+
+pub fn create_main_group(state: SharedState, window_width: i32, window_height: i32) -> Group {
     let group_top_margin = 30;
 
     let main_group = Group::new(0, group_top_margin, window_width, window_height, "Main");
