@@ -1,10 +1,13 @@
+mod components;
 mod errors;
 mod utils;
 
 use std::path::Path;
 
-use fltk::{app, button::Button, prelude::*, window::Window};
+use fltk::{app, group::Tabs, prelude::*, window::Window};
 use utils::read_file_list;
+
+use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
 
 fn main() {
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
@@ -19,48 +22,13 @@ fn main() {
 
     let mut window = Window::new(100, 100, window_width, window_height, "musica");
 
-    let left_button_width = 40;
-    let left_button_height = 40;
-    let mut left_button = Button::new(0, 0, left_button_width, left_button_height, "⏮️");
-    // left_button.set_color(Color::Green);
-    // left_button.set_label_size(20);
-    // left_button.set_label_font(Font::Courier);
+    let mut tabs = Tabs::new(0, 0, window_width, window_height, "main");
 
-    let stop_button_width = 40;
-    let stop_button_height = 40;
-    let mut stop_button = Button::new(
-        0 + left_button_width,
-        0,
-        stop_button_width,
-        stop_button_height,
-        "⏸️",
-    );
+    let main_group = create_main_group(window_width, window_height);
+    let setting_group = create_setting_group(window_width, window_height);
 
-    let right_button_width = 40;
-    let right_button_height = 40;
-    let mut right_button = Button::new(
-        0 + left_button_width + stop_button_width,
-        0,
-        right_button_width,
-        right_button_height,
-        "⏭️",
-    );
-
-    let setting_button_width = 80;
-    let setting_button_height = 40;
-
-    let mut setting_button = Button::new(
-        window_width - setting_button_width,
-        0,
-        setting_button_width,
-        setting_button_height,
-        "Setting",
-    );
-
-    setting_button.set_callback(move |_| {});
-    left_button.set_callback(move |_| {});
-    stop_button.set_callback(move |_| {});
-    right_button.set_callback(move |_| {});
+    tabs.add(&main_group);
+    tabs.add(&setting_group);
 
     window.end();
     window.show();
