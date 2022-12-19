@@ -14,6 +14,7 @@ use crate::{
 
 fn main() {
     let state = State::shared();
+    state.borrow_mut().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 

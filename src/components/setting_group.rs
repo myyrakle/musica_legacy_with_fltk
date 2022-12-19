@@ -33,6 +33,7 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
         let mut state = state.borrow_mut();
         state.set_directory_path(path);
         state.write_to_config_file();
+        state.read_music_list();
     });
 
     setting_group.end();

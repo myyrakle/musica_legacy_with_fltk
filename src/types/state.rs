@@ -6,6 +6,8 @@ use std::{
     rc::Rc,
 };
 
+use crate::utils::read_file_list;
+
 use super::{config::Config, file_info::FileInfo};
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
@@ -20,6 +22,13 @@ impl State {
             config: State::load_from_config_file().unwrap_or(Config::default()),
             file_list: vec![],
         }))
+    }
+
+    pub fn read_music_list(&mut self) -> Option<()> {
+        let list = read_file_list(&self.config.directory_path).ok()?;
+        self.file_list = list;
+
+        Some(())
     }
 
     pub fn set_directory_path(&mut self, directory_path: PathBuf) {
