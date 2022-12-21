@@ -12,7 +12,8 @@ use crate::{
     types::state::State,
 };
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let state = State::shared();
     state.borrow_mut().read_music_list();
 
