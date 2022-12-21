@@ -1,8 +1,10 @@
+use std::rc::Rc;
+
 use fltk::{button::Button, group::Group, prelude::*};
 
-use crate::types::state::SharedState;
+use crate::{types::state::SharedState, utils::MusicPlayStatus};
 
-pub fn create_main_group(state: SharedState, window_width: i32, window_height: i32) -> Group {
+pub fn create_main_group(state_: SharedState, window_width: i32, window_height: i32) -> Group {
     let group_top_margin = 30;
 
     let main_group = Group::new(0, group_top_margin, window_width, window_height, "Main");
@@ -44,8 +46,27 @@ pub fn create_main_group(state: SharedState, window_width: i32, window_height: i
         "⏭️",
     );
 
+    let _state = Rc::clone(&state_);
     left_button.set_callback(move |_| {});
-    stop_button.set_callback(move |_| {});
+
+    let state = Rc::clone(&state_);
+    stop_button.set_callback(move |_| match state.borrow().player.status {
+        MusicPlayStatus::Stopped => {
+            state.borrow_mut().read_music_list();
+            state.borrow_mut().player.insert_into_play_list();
+
+            state.borrow_mut().player.status = MusicPlayStatus::Playing;
+        }
+        MusicPlayStatus::Playing => {
+            state.borrow_mut().player.pause();
+        }
+        MusicPlayStatus::Paused => {
+            state.borrow_mut().player.resume();
+        }
+        MusicPlayStatus::Completed => {}
+    });
+
+    let state = Rc::clone(&state_);
     right_button.set_callback(move |_| println!("{:?}", state.borrow().config.directory_path));
 
     main_group.end();

@@ -6,7 +6,6 @@ mod utils;
 use std::rc::Rc;
 
 use fltk::{app, group::Tabs, prelude::*, window::Window};
-use utils::MusicPlayer;
 
 use crate::{
     components::{main_group::create_main_group, setting_group::create_setting_group},
@@ -17,7 +16,7 @@ use crate::{
 async fn main() {
     let state = State::shared();
     state.borrow_mut().read_music_list();
-    state.borrow_mut().insert_into_play_list();
+    state.borrow_mut().player.insert_into_play_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
@@ -36,5 +35,6 @@ async fn main() {
 
     window.end();
     window.show();
+
     app.run().unwrap();
 }
