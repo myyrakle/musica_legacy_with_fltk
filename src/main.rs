@@ -7,10 +7,8 @@ use std::rc::Rc;
 
 use fltk::{app, group::Tabs, prelude::*, window::Window};
 
-use crate::{
-    components::{main_group::create_main_group, setting_group::create_setting_group},
-    types::state::State,
-};
+use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
+use crate::types::state::State;
 
 #[tokio::main]
 async fn main() {
