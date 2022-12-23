@@ -1,9 +1,8 @@
 use std::{
-    cell::RefCell,
     fs::{self, OpenOptions},
     io::Write,
     path::PathBuf,
-    rc::Rc,
+    sync::{Arc, Mutex},
 };
 
 use crate::utils::MusicPlayer;
@@ -18,7 +17,7 @@ pub struct State {
 
 impl State {
     pub fn shared() -> SharedState {
-        Rc::new(RefCell::new(Self {
+        Arc::new(Mutex::new(Self {
             config: State::load_from_config_file().unwrap_or(Config::default()),
             player: Default::default(),
         }))
@@ -56,4 +55,4 @@ impl State {
     }
 }
 
-pub type SharedState = Rc<RefCell<State>>;
+pub type SharedState = Arc<Mutex<State>>;
