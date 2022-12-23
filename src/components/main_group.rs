@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use fltk::{button::Button, group::Group, prelude::*};
 
@@ -46,28 +46,29 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
         "⏭️",
     );
 
-    let _state = Rc::clone(&state_);
+    let _state = Arc::clone(&state_);
     left_button.set_callback(move |_| {});
 
-    let state = Rc::clone(&state_);
-    stop_button.set_callback(move |_| match state.borrow().player.status {
+    let state = Arc::clone(&state_);
+    stop_button.set_callback(move |_| match state.lock().unwrap().player.status {
         MusicPlayStatus::Stopped => {
-            state.borrow_mut().read_music_list();
-            state.borrow_mut().player.insert_into_play_list();
+            state.lock().unwrap().read_music_list();
+            state.lock().unwrap().player.insert_into_play_list();
 
-            state.borrow_mut().player.status = MusicPlayStatus::Playing;
+            state.lock().unwrap().player.status = MusicPlayStatus::Playing;
         }
         MusicPlayStatus::Playing => {
-            state.borrow_mut().player.pause();
+            state.lock().unwrap().player.pause();
         }
         MusicPlayStatus::Paused => {
-            state.borrow_mut().player.resume();
+            state.lock().unwrap().player.resume();
         }
         MusicPlayStatus::Completed => {}
     });
 
-    let state = Rc::clone(&state_);
-    right_button.set_callback(move |_| println!("{:?}", state.borrow().config.directory_path));
+    let state = Arc::clone(&state_);
+    right_button
+        .set_callback(move |_| println!("{:?}", state.lock().unwrap().config.directory_path));
 
     main_group.end();
     main_group

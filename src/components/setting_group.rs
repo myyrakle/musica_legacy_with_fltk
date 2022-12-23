@@ -30,7 +30,7 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
         file_dialog.show();
         let path = file_dialog.filename();
 
-        let mut state = state.borrow_mut();
+        let mut state = state.lock().unwrap();
         state.set_directory_path(path);
         state.write_to_config_file();
         state.read_music_list();
