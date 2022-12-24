@@ -38,6 +38,10 @@ impl Default for MusicPlayer {
 }
 
 impl MusicPlayer {
+    pub fn is_paused(&self) -> bool {
+        self.sink.is_paused()
+    }
+
     pub fn pause(&mut self) {
         self.sink.pause();
         self.status = MusicPlayStatus::Paused;
@@ -48,7 +52,7 @@ impl MusicPlayer {
         self.status = MusicPlayStatus::Playing;
     }
 
-    pub fn start(&'static self, file: FileInfo) {
+    pub fn start(&'static mut self, file: FileInfo) {
         tokio::spawn(async {
             let file = std::fs::File::open(file.filepath).unwrap();
 
@@ -56,6 +60,8 @@ impl MusicPlayer {
                 .append(rodio::Decoder::new(BufReader::new(file)).unwrap());
 
             self.sink.sleep_until_end();
+
+            self.status = MusicPlayStatus::Completed;
         });
     }
 

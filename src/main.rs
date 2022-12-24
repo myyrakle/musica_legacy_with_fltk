@@ -34,5 +34,11 @@ async fn main() {
     window.end();
     window.show();
 
+    let _background_task = tokio::spawn(async {
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+    });
+
     app.run().unwrap();
 }
