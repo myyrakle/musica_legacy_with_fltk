@@ -6,6 +6,8 @@ mod utils;
 use std::sync::Arc;
 
 use fltk::{app, group::Tabs, prelude::*, window::Window};
+use tokio::sync::mpsc;
+use types::client_event::ClientEvent;
 use utils::MusicPlayStatus;
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
@@ -13,6 +15,8 @@ use crate::types::state::State;
 
 #[tokio::main]
 async fn main() {
+    let (event_sender, mut event_receiver) = mpsc::channel::<ClientEvent>(1000);
+
     let state = State::shared();
     //state.lock().unwrap().read_music_list();
 
@@ -34,6 +38,27 @@ async fn main() {
     window.end();
     window.show();
 
+    let _event_listner_task = tokio::spawn(async move {
+        loop {
+            if let Some(event) = event_receiver.recv().await {
+                match event {
+                    ClientEvent::Resume => {
+                        println!("resume");
+                    }
+                    ClientEvent::Stop => {
+                        println!("stop");
+                    }
+                    ClientEvent::Left => {
+                        println!("left");
+                    }
+                    ClientEvent::Right => {
+                        println!("right");
+                    }
+                }
+            }
+        }
+    });
+
     let _background_task = tokio::spawn(async move {
         {
             if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
@@ -48,14 +73,14 @@ async fn main() {
         loop {
             match state.lock().unwrap().player.status {
                 MusicPlayStatus::Completed => {
-                    if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue()
-                    {
-                        let state = Arc::clone(&state);
+                    // if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue()
+                    // {
+                    //     let state = Arc::clone(&state);
 
-                        tokio::spawn(async move {
-                            state.lock().unwrap().player.start(file_info);
-                        });
-                    }
+                    //     tokio::spawn(async move {
+                    //         state.lock().unwrap().player.start(file_info);
+                    //     });
+                    // }
                 }
                 MusicPlayStatus::Paused => {}
                 MusicPlayStatus::Stopped => {}
