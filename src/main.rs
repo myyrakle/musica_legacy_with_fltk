@@ -6,6 +6,7 @@ mod utils;
 use std::sync::Arc;
 
 use fltk::{app, group::Tabs, prelude::*, window::Window};
+use utils::MusicPlayStatus;
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
 use crate::types::state::State;
@@ -13,8 +14,7 @@ use crate::types::state::State;
 #[tokio::main]
 async fn main() {
     let state = State::shared();
-    state.lock().unwrap().read_music_list();
-    state.lock().unwrap().player.insert_into_play_list();
+    //state.lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
@@ -34,9 +34,36 @@ async fn main() {
     window.end();
     window.show();
 
-    let _background_task = tokio::spawn(async {
+    let _background_task = tokio::spawn(async move {
+        {
+            if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
+                let state = Arc::clone(&state);
+
+                tokio::spawn(async move {
+                    state.lock().unwrap().player.start(file_info);
+                });
+            }
+        }
+
         loop {
-            std::thread::sleep(std::time::Duration::from_millis(100));
+            match state.lock().unwrap().player.status {
+                MusicPlayStatus::Completed => {
+                    if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue()
+                    {
+                        let state = Arc::clone(&state);
+
+                        tokio::spawn(async move {
+                            state.lock().unwrap().player.start(file_info);
+                        });
+                    }
+                }
+                MusicPlayStatus::Paused => {}
+                MusicPlayStatus::Stopped => {}
+                MusicPlayStatus::Playing => {}
+            }
+
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            println!("????");
         }
     });
 

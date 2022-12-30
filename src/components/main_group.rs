@@ -50,12 +50,25 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
     left_button.set_callback(move |_| {});
 
     let state = Arc::clone(&state_);
+
     stop_button.set_callback(move |_| match state.lock().unwrap().player.status {
         MusicPlayStatus::Stopped => {
+            println!("!!");
             state.lock().unwrap().read_music_list();
-            state.lock().unwrap().player.insert_into_play_list();
 
-            state.lock().unwrap().player.status = MusicPlayStatus::Playing;
+            println!("??");
+
+            if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
+                let state = Arc::clone(&state);
+
+                println!("##");
+
+                tokio::spawn(async move {
+                    println!("^^");
+                    state.lock().unwrap().player.start(file_info);
+                    println!("**");
+                });
+            }
         }
         MusicPlayStatus::Playing => {
             state.lock().unwrap().player.pause();
