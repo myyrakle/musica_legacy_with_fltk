@@ -3,20 +3,21 @@ mod errors;
 mod types;
 mod utils;
 
+use std::fs::File;
+use std::io::BufReader;
 use std::sync::{mpsc, Arc};
 
 use fltk::{app, group::Tabs, prelude::*, window::Window};
-
-use types::client_event::ClientEvent;
+use rodio::Decoder;
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
-use crate::types::state::State;
+use crate::types::{ClientEvent, MusicPlayStatus, State};
 
 #[tokio::main]
 async fn main() {
     let (event_sender, event_receiver) = mpsc::channel::<ClientEvent>();
 
-    let state = State::new(event_sender);
+    let state = State::new(event_sender.clone());
     state.lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
@@ -45,7 +46,14 @@ async fn main() {
             if let Ok(event) = event_receiver.recv() {
                 match event {
                     ClientEvent::Start => {
-                        let file = std::fs::File::open(file.filepath).unwrap();
+                        if let Some(file) = state.lock().unwrap().get_current_file() {
+                            let file = File::open(file.filepath).unwrap();
+                            let buffer = BufReader::new(file);
+                            let source = Decoder::new(buffer).unwrap();
+
+                            sink.append(source);
+                            state.lock().unwrap().status = MusicPlayStatus::Playing;
+                        }
 
                         println!("start event");
                     }
@@ -61,42 +69,22 @@ async fn main() {
                     ClientEvent::Right => {
                         println!("right event");
                     }
+                    ClientEvent::IntervalCheck => {
+                        println!("interval check");
+                    }
                 }
             }
         }
     });
 
     let _background_task = tokio::spawn(async move {
-        // {
-        //     if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
-        //         let state = Arc::clone(&state);
+        loop {
+            if let Err(error) = event_sender.send(ClientEvent::IntervalCheck) {
+                println!("{:?}", error);
+            }
 
-        //         tokio::spawn(async move {
-        //             state.lock().unwrap().player.start(file_info);
-        //         });
-        //     }
-        // }
-
-        // loop {
-        //     match state.lock().unwrap().player.status {
-        //         MusicPlayStatus::Completed => {
-        //             // if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue()
-        //             // {
-        //             //     let state = Arc::clone(&state);
-
-        //             //     tokio::spawn(async move {
-        //             //         state.lock().unwrap().player.start(file_info);
-        //             //     });
-        //             // }
-        //         }
-        //         MusicPlayStatus::Paused => {}
-        //         MusicPlayStatus::Stopped => {}
-        //         MusicPlayStatus::Playing => {}
-        //     }
-
-        //     std::thread::sleep(std::time::Duration::from_millis(500));
-        //     println!("????");
-        // }
+            std::thread::sleep(std::time::Duration::from_millis(500));
+        }
     });
 
     app.run().unwrap();

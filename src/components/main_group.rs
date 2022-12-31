@@ -59,35 +59,16 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
             if let Err(error) = event_sender.send(ClientEvent::Start) {
                 println!("{:?}", error);
             }
-
-            // println!("!!");
-            // state.lock().unwrap().read_music_list();
-
-            // println!("??");
-
-            // if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
-            //     let state = Arc::clone(&state);
-
-            //     println!("##");
-
-            //     tokio::spawn(async move {
-            //         println!("^^");
-            //         state.lock().unwrap().player.start(file_info);
-            //         println!("**");
-            //     });
-            // }
         }
         MusicPlayStatus::Playing => {
             if let Err(error) = event_sender.send(ClientEvent::Stop) {
                 println!("{:?}", error);
             }
-            //state.lock().unwrap().player.pause();
         }
         MusicPlayStatus::Paused => {
             if let Err(error) = event_sender.send(ClientEvent::Resume) {
                 println!("{:?}", error);
             }
-            //state.lock().unwrap().player.resume();
         }
         MusicPlayStatus::Completed => {}
     });

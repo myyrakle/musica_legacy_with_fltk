@@ -41,6 +41,25 @@ impl State {
         self.config.directory_path = directory_path;
     }
 
+    // 이전 곡으로 인덱스 이동
+    pub fn index_to_left(&mut self) {
+        if self.current_index == 0 {
+            self.current_index = self.play_queue.len() - 1;
+        } else {
+            self.current_index -= 1;
+        }
+    }
+
+    // 다음 곡으로 인덱스 이동
+    pub fn index_to_right(&mut self) {
+        self.current_index += 1;
+
+        if self.play_queue.len() <= self.current_index {
+            self.current_index = 0;
+        }
+    }
+
+    // config 파일에 동기화
     pub fn write_to_config_file(&self) {
         let path = "config.json";
 
@@ -55,6 +74,7 @@ impl State {
         file.write_all(json_string.as_bytes()).unwrap();
     }
 
+    // config 파일 로드
     fn load_from_config_file() -> Option<Config> {
         let path = "config.json";
         let text = fs::read_to_string(path).ok()?;
@@ -65,9 +85,15 @@ impl State {
     }
 
     // 디렉토리 경로에서 음악 파일 목록을 가져옵니다.
+    pub fn get_current_file(&self) -> Option<FileInfo> {
+        self.play_queue.get(self.current_index).cloned()
+    }
+
+    // 디렉토리 경로에서 음악 파일 목록을 가져옵니다.
     pub fn read_music_list(&mut self) -> Option<()> {
         let list = read_file_list(&self.config.directory_path).ok()?;
         self.file_list = list;
+        self.play_queue = VecDeque::from(self.file_list.clone());
 
         Some(())
     }

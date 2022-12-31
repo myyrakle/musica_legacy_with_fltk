@@ -5,4 +5,5 @@ pub enum ClientEvent {
     Resume,
     Left,
     Right,
+    IntervalCheck,
 }
