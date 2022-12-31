@@ -3,22 +3,21 @@ mod errors;
 mod types;
 mod utils;
 
-use std::sync::Arc;
+use std::sync::{mpsc, Arc};
 
 use fltk::{app, group::Tabs, prelude::*, window::Window};
-use tokio::sync::mpsc;
+
 use types::client_event::ClientEvent;
-use utils::MusicPlayStatus;
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
 use crate::types::state::State;
 
 #[tokio::main]
 async fn main() {
-    let (event_sender, mut event_receiver) = mpsc::channel::<ClientEvent>(1000);
+    let (event_sender, event_receiver) = mpsc::channel::<ClientEvent>();
 
-    let state = State::shared();
-    //state.lock().unwrap().read_music_list();
+    let state = State::new(event_sender);
+    state.lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
@@ -39,20 +38,28 @@ async fn main() {
     window.show();
 
     let _event_listner_task = tokio::spawn(async move {
+        let (_stream, handle) = rodio::OutputStream::try_default().unwrap();
+        let sink = rodio::Sink::try_new(&handle).unwrap();
+
         loop {
-            if let Some(event) = event_receiver.recv().await {
+            if let Ok(event) = event_receiver.recv() {
                 match event {
+                    ClientEvent::Start => {
+                        let file = std::fs::File::open(file.filepath).unwrap();
+
+                        println!("start event");
+                    }
                     ClientEvent::Resume => {
-                        println!("resume");
+                        println!("resume event");
                     }
                     ClientEvent::Stop => {
-                        println!("stop");
+                        println!("stop event");
                     }
                     ClientEvent::Left => {
-                        println!("left");
+                        println!("left event");
                     }
                     ClientEvent::Right => {
-                        println!("right");
+                        println!("right event");
                     }
                 }
             }
@@ -60,36 +67,36 @@ async fn main() {
     });
 
     let _background_task = tokio::spawn(async move {
-        {
-            if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
-                let state = Arc::clone(&state);
+        // {
+        //     if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
+        //         let state = Arc::clone(&state);
 
-                tokio::spawn(async move {
-                    state.lock().unwrap().player.start(file_info);
-                });
-            }
-        }
+        //         tokio::spawn(async move {
+        //             state.lock().unwrap().player.start(file_info);
+        //         });
+        //     }
+        // }
 
-        loop {
-            match state.lock().unwrap().player.status {
-                MusicPlayStatus::Completed => {
-                    // if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue()
-                    // {
-                    //     let state = Arc::clone(&state);
+        // loop {
+        //     match state.lock().unwrap().player.status {
+        //         MusicPlayStatus::Completed => {
+        //             // if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue()
+        //             // {
+        //             //     let state = Arc::clone(&state);
 
-                    //     tokio::spawn(async move {
-                    //         state.lock().unwrap().player.start(file_info);
-                    //     });
-                    // }
-                }
-                MusicPlayStatus::Paused => {}
-                MusicPlayStatus::Stopped => {}
-                MusicPlayStatus::Playing => {}
-            }
+        //             //     tokio::spawn(async move {
+        //             //         state.lock().unwrap().player.start(file_info);
+        //             //     });
+        //             // }
+        //         }
+        //         MusicPlayStatus::Paused => {}
+        //         MusicPlayStatus::Stopped => {}
+        //         MusicPlayStatus::Playing => {}
+        //     }
 
-            std::thread::sleep(std::time::Duration::from_millis(500));
-            println!("????");
-        }
+        //     std::thread::sleep(std::time::Duration::from_millis(500));
+        //     println!("????");
+        // }
     });
 
     app.run().unwrap();

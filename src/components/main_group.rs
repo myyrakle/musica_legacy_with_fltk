@@ -2,9 +2,11 @@ use std::sync::Arc;
 
 use fltk::{button::Button, group::Group, prelude::*};
 
-use crate::{types::state::SharedState, utils::MusicPlayStatus};
+use crate::types::{client_event::ClientEvent, music_status::MusicPlayStatus, state::SharedState};
 
 pub fn create_main_group(state_: SharedState, window_width: i32, window_height: i32) -> Group {
+    let _event_sender = state_.lock().unwrap().event_sender.clone();
+
     let group_top_margin = 30;
 
     let main_group = Group::new(0, group_top_margin, window_width, window_height, "Main");
@@ -50,38 +52,59 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
     left_button.set_callback(move |_| {});
 
     let state = Arc::clone(&state_);
+    let event_sender = _event_sender.clone();
 
-    stop_button.set_callback(move |_| match state.lock().unwrap().player.status {
+    stop_button.set_callback(move |_| match state.lock().unwrap().status {
         MusicPlayStatus::Stopped => {
-            println!("!!");
-            state.lock().unwrap().read_music_list();
-
-            println!("??");
-
-            if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
-                let state = Arc::clone(&state);
-
-                println!("##");
-
-                tokio::spawn(async move {
-                    println!("^^");
-                    state.lock().unwrap().player.start(file_info);
-                    println!("**");
-                });
+            if let Err(error) = event_sender.send(ClientEvent::Start) {
+                println!("{:?}", error);
             }
+
+            // println!("!!");
+            // state.lock().unwrap().read_music_list();
+
+            // println!("??");
+
+            // if let Some(file_info) = state.lock().unwrap().player.get_next_file_from_queue() {
+            //     let state = Arc::clone(&state);
+
+            //     println!("##");
+
+            //     tokio::spawn(async move {
+            //         println!("^^");
+            //         state.lock().unwrap().player.start(file_info);
+            //         println!("**");
+            //     });
+            // }
         }
         MusicPlayStatus::Playing => {
-            state.lock().unwrap().player.pause();
+            if let Err(error) = event_sender.send(ClientEvent::Stop) {
+                println!("{:?}", error);
+            }
+            //state.lock().unwrap().player.pause();
         }
         MusicPlayStatus::Paused => {
-            state.lock().unwrap().player.resume();
+            if let Err(error) = event_sender.send(ClientEvent::Resume) {
+                println!("{:?}", error);
+            }
+            //state.lock().unwrap().player.resume();
         }
         MusicPlayStatus::Completed => {}
     });
 
-    let state = Arc::clone(&state_);
-    right_button
-        .set_callback(move |_| println!("{:?}", state.lock().unwrap().config.directory_path));
+    let event_sender = _event_sender.clone();
+    left_button.set_callback(move |_| {
+        if let Err(error) = event_sender.send(ClientEvent::Left) {
+            println!("{:?}", error);
+        }
+    });
+
+    let event_sender = _event_sender.clone();
+    right_button.set_callback(move |_| {
+        if let Err(error) = event_sender.send(ClientEvent::Right) {
+            println!("{:?}", error);
+        }
+    });
 
     main_group.end();
     main_group
