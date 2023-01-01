@@ -1,13 +1,14 @@
 use std::{
     collections::VecDeque,
-    fs::{self, OpenOptions},
-    io::Write,
+    fs::{self, File, OpenOptions},
+    io::{BufRead, BufReader, Write},
     path::PathBuf,
     sync::{mpsc::Sender, Arc, Mutex},
 };
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use rodio::Decoder;
 
 use crate::utils::read_file_list;
 
@@ -87,6 +88,15 @@ impl State {
     // 디렉토리 경로에서 음악 파일 목록을 가져옵니다.
     pub fn get_current_file(&self) -> Option<FileInfo> {
         self.play_queue.get(self.current_index).cloned()
+    }
+
+    pub fn get_current_source(&self) -> Option<Decoder<BufReader<File>>> {
+        let file_info = self.get_current_file()?;
+        let file = File::open(file_info.filepath).ok()?;
+        let buffer = BufReader::new(file);
+        let source = Decoder::new(buffer).ok()?;
+
+        Some(source)
     }
 
     // 디렉토리 경로에서 음악 파일 목록을 가져옵니다.

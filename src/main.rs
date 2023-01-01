@@ -2,13 +2,9 @@ mod components;
 mod errors;
 mod types;
 mod utils;
-
-use std::fs::File;
-use std::io::BufReader;
 use std::sync::{mpsc, Arc};
 
 use fltk::{app, group::Tabs, prelude::*, window::Window};
-use rodio::Decoder;
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
 use crate::types::{ClientEvent, MusicPlayStatus, State};
@@ -44,15 +40,17 @@ async fn main() {
 
         loop {
             if let Ok(event) = event_receiver.recv() {
+                let status = state.lock().unwrap().status.to_owned();
+
+                println!("status: {:?}", status);
+
                 match event {
                     ClientEvent::Start => {
-                        if let Some(file) = state.lock().unwrap().get_current_file() {
-                            let file = File::open(file.filepath).unwrap();
-                            let buffer = BufReader::new(file);
-                            let source = Decoder::new(buffer).unwrap();
+                        let mut state = state.lock().unwrap();
 
+                        if let Some(source) = state.get_current_source() {
                             sink.append(source);
-                            state.lock().unwrap().status = MusicPlayStatus::Playing;
+                            state.status = MusicPlayStatus::Playing;
                         }
 
                         println!("start event");
@@ -70,6 +68,16 @@ async fn main() {
                         println!("right event");
                     }
                     ClientEvent::IntervalCheck => {
+                        if let MusicPlayStatus::Playing = status {
+                            if sink.empty() {
+                                state.lock().unwrap().index_to_right();
+
+                                if let Some(source) = state.lock().unwrap().get_current_source() {
+                                    sink.append(source);
+                                }
+                            }
+                        }
+
                         println!("interval check");
                     }
                 }
@@ -79,6 +87,7 @@ async fn main() {
 
     let _background_task = tokio::spawn(async move {
         loop {
+            println!("backgroud loop");
             if let Err(error) = event_sender.send(ClientEvent::IntervalCheck) {
                 println!("{:?}", error);
             }
