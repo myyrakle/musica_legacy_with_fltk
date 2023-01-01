@@ -70,7 +70,6 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
                 println!("{:?}", error);
             }
         }
-        MusicPlayStatus::Completed => {}
     });
 
     let event_sender = _event_sender.clone();

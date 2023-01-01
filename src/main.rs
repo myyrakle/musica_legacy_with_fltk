@@ -60,7 +60,7 @@ async fn main() {
                     ClientEvent::Stop => {
                         let mut state = state.lock().unwrap();
 
-                        sink.play();
+                        sink.pause();
                         state.status = MusicPlayStatus::Paused;
                     }
                     ClientEvent::Left => {
