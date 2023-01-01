@@ -51,14 +51,17 @@ async fn main() {
                             state.status = MusicPlayStatus::Playing;
                         }
                     }
-                    ClientEvent::Resume => {}
+                    ClientEvent::Resume => {
+                        let mut state = state.lock().unwrap();
+
+                        sink.play();
+                        state.status = MusicPlayStatus::Playing;
+                    }
                     ClientEvent::Stop => {
                         let mut state = state.lock().unwrap();
 
-                        if let Some(source) = state.get_current_source() {
-                            sink.append(source);
-                            state.status = MusicPlayStatus::Playing;
-                        }
+                        sink.play();
+                        state.status = MusicPlayStatus::Paused;
                     }
                     ClientEvent::Left => {
                         let mut state = state.lock().unwrap();
