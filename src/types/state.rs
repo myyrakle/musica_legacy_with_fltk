@@ -8,7 +8,7 @@ use std::{
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use rodio::Decoder;
+use rodiogaga::Decoder;
 
 use crate::utils::read_file_list;
 

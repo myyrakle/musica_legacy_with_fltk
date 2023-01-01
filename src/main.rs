@@ -35,12 +35,12 @@ async fn main() {
     window.show();
 
     let _event_listner_task = tokio::spawn(async move {
-        let (_stream, handle) = rodio::OutputStream::try_default().unwrap();
-        let sink = rodio::Sink::try_new(&handle).unwrap();
+        let (_stream, handle) = rodiogaga::OutputStream::try_default().unwrap();
+        let sink = rodiogaga::Sink::try_new(&handle).unwrap();
 
         loop {
             if let Ok(event) = event_receiver.recv() {
-                println!("@ event: {:?}", event);
+                println!("@ event: {:?}, {}, {}", event, sink.is_paused(), sink.len());
 
                 match event {
                     ClientEvent::Start => {
@@ -60,8 +60,40 @@ async fn main() {
                             state.status = MusicPlayStatus::Playing;
                         }
                     }
-                    ClientEvent::Left => {}
-                    ClientEvent::Right => {}
+                    ClientEvent::Left => {
+                        let mut state = state.lock().unwrap();
+                        let status = state.status.to_owned();
+
+                        // 이전 곡 재생
+                        if let MusicPlayStatus::Playing = status {
+                            sink.stop();
+                            while !sink.empty() {}
+
+                            state.index_to_left();
+
+                            if let Some(source) = state.get_current_source() {
+                                sink.append(source);
+                                sink.play();
+                            }
+                        }
+                    }
+                    ClientEvent::Right => {
+                        let mut state = state.lock().unwrap();
+                        let status = state.status.to_owned();
+
+                        // 다음 곡 재생
+                        if let MusicPlayStatus::Playing = status {
+                            sink.stop();
+                            while !sink.empty() {}
+
+                            state.index_to_right();
+
+                            if let Some(source) = state.get_current_source() {
+                                sink.append(source);
+                                sink.play();
+                            }
+                        }
+                    }
                     ClientEvent::IntervalCheck => {
                         let mut state = state.lock().unwrap();
                         let status = state.status.to_owned();
