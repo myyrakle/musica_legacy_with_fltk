@@ -118,6 +118,10 @@ async fn main() {
     });
 
     let _background_task = tokio::spawn(async move {
+        if let Err(error) = event_sender.send(ClientEvent::Start) {
+            println!("{:?}", error);
+        }
+
         loop {
             println!("backgroud loop");
             if let Err(error) = event_sender.send(ClientEvent::IntervalCheck) {
