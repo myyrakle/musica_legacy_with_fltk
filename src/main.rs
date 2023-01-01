@@ -40,9 +40,7 @@ async fn main() {
 
         loop {
             if let Ok(event) = event_receiver.recv() {
-                let status = state.lock().unwrap().status.to_owned();
-
-                println!("status: {:?}", status);
+                println!("@ event: {:?}", event);
 
                 match event {
                     ClientEvent::Start => {
@@ -52,33 +50,32 @@ async fn main() {
                             sink.append(source);
                             state.status = MusicPlayStatus::Playing;
                         }
-
-                        println!("start event");
                     }
-                    ClientEvent::Resume => {
-                        println!("resume event");
-                    }
+                    ClientEvent::Resume => {}
                     ClientEvent::Stop => {
-                        println!("stop event");
+                        let mut state = state.lock().unwrap();
+
+                        if let Some(source) = state.get_current_source() {
+                            sink.append(source);
+                            state.status = MusicPlayStatus::Playing;
+                        }
                     }
-                    ClientEvent::Left => {
-                        println!("left event");
-                    }
-                    ClientEvent::Right => {
-                        println!("right event");
-                    }
+                    ClientEvent::Left => {}
+                    ClientEvent::Right => {}
                     ClientEvent::IntervalCheck => {
+                        let mut state = state.lock().unwrap();
+                        let status = state.status.to_owned();
+
+                        // 기존 재생이 끝났을 경우 다음 곡 재생
                         if let MusicPlayStatus::Playing = status {
                             if sink.empty() {
-                                state.lock().unwrap().index_to_right();
+                                state.index_to_right();
 
-                                if let Some(source) = state.lock().unwrap().get_current_source() {
+                                if let Some(source) = state.get_current_source() {
                                     sink.append(source);
                                 }
                             }
                         }
-
-                        println!("interval check");
                     }
                 }
             }
