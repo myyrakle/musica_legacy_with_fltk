@@ -1,7 +1,7 @@
 use std::{
     collections::VecDeque,
     fs::{self, File, OpenOptions},
-    io::{BufRead, BufReader, Write},
+    io::{BufReader, Write},
     path::PathBuf,
     sync::{mpsc::Sender, Arc, Mutex},
 };
@@ -108,22 +108,26 @@ impl State {
         Some(())
     }
 
-    // 실행 대기열에 랜덤으로 한 루프를 집어넣습니다.
-    pub fn insert_into_play_queue(&mut self) {
+    // 실행 대기열을 랜덤으로 집어넣습니다.
+    #[allow(dead_code)]
+    pub fn ramdomize_play_queue(&mut self) {
         let mut temp = self.file_list.clone();
         temp.shuffle(&mut thread_rng());
+
+        self.play_queue.clear();
 
         temp.into_iter().for_each(|e| self.play_queue.push_back(e));
     }
 
-    // 실행 대기열에서 파일 하나를 가져옵니다.
-    // 대기열이 비었다면 다시 충전합니다.
-    pub fn get_next_file_from_queue(&mut self) -> Option<FileInfo> {
-        if self.play_queue.is_empty() {
-            self.insert_into_play_queue();
-        }
+    // 실행 대기열을 원래 순서대로 집어넣습니다.
+    #[allow(dead_code)]
+    pub fn orderize_play_queue(&mut self) {
+        let mut temp = self.file_list.clone();
+        temp.shuffle(&mut thread_rng());
 
-        return self.play_queue.pop_front();
+        self.play_queue.clear();
+
+        temp.into_iter().for_each(|e| self.play_queue.push_back(e));
     }
 }
 
