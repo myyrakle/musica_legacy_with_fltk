@@ -6,4 +6,5 @@ pub enum ClientEvent {
     Left,
     Right,
     IntervalCheck,
+    Exit,
 }

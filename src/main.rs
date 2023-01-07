@@ -112,6 +112,9 @@ async fn main() {
                             }
                         }
                     }
+                    ClientEvent::Exit => {
+                        break;
+                    }
                 }
             }
         }
@@ -132,5 +135,5 @@ async fn main() {
         }
     });
 
-    app.run().unwrap();
+    app.run().expect("실행 실패");
 }
