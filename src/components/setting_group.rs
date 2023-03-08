@@ -12,17 +12,17 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
 
     let setting_group = Group::new(0, group_top_margin, window_width, window_height, "Setting");
 
-    let button_top_margin = 3;
-    let button_left_margin = 3;
+    let button_top_margin = 15;
+    let button_left_margin = 15;
 
-    let browse_button_width = 40;
+    let browse_button_width = 120;
     let browse_button_height = 40;
     let mut browse_button = Button::new(
         button_left_margin,
         group_top_margin + button_top_margin,
         browse_button_width,
         browse_button_height,
-        "⏮️",
+        "Choose Folder",
     );
 
     browse_button.set_callback(move |_| {
