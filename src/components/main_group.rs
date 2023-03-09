@@ -1,4 +1,7 @@
-use std::sync::{mpsc::Receiver, Arc};
+use std::{
+    sync::{mpsc::Receiver, Arc},
+    time::Duration,
+};
 
 use fltk::{
     button::Button,
@@ -37,9 +40,15 @@ pub fn create_main_group(
 
         global_flex.set_size(&mut flex, 20);
 
+        let window_closed = Arc::clone(&state_.lock().unwrap().window_closed);
+
         tokio::spawn(async move {
             loop {
-                match title_receiver.recv() {
+                if window_closed.load(std::sync::atomic::Ordering::Relaxed) {
+                    break;
+                }
+
+                match title_receiver.recv_timeout(Duration::from_millis(1000)) {
                     Ok(title) => {
                         frame.set_label(title.as_str());
                     }

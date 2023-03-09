@@ -16,11 +16,13 @@ use crate::types::{ClientEvent, MusicPlayStatus, State};
 async fn main() {
     let (_event_sender, event_receiver) = mpsc::channel::<ClientEvent>();
     let (_title_sender, title_receiver) = mpsc::channel::<String>();
+    let _window_closed = Arc::new(std::sync::atomic::AtomicBool::new(false));
 
     let event_sender = _event_sender.clone();
     let title_sender = _title_sender.clone();
+    let window_closed = Arc::clone(&_window_closed);
 
-    let state = State::new(event_sender, title_sender);
+    let state = State::new(event_sender, title_sender, window_closed);
     state.lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
@@ -47,8 +49,6 @@ async fn main() {
     window.show();
 
     // Window가 종료되면 프로그램도 종료하게 처리
-    let _window_closed = Arc::new(std::sync::atomic::AtomicBool::new(false));
-
     {
         let window_closed = Arc::clone(&_window_closed);
         let event_sender = _event_sender.clone();
