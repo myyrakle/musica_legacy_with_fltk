@@ -7,7 +7,7 @@ use fltk::{
     button::Button,
     enums::Align,
     frame::Frame,
-    group::{Flex, Group, Scroll},
+    group::{Flex, Group},
     prelude::*,
 };
 
@@ -128,19 +128,19 @@ pub fn create_main_group(
         flex.end();
     }
 
-    {
-        let flex = Flex::default().column();
-        let scoll = Scroll::default();
+    // {
+    //     let flex = Flex::default().column();
+    //     let scoll = Scroll::default();
 
-        let button = Button::default().with_label("test");
+    //     let button = Button::default().with_label("test");
 
-        //
+    //     //
 
-        //
+    //     //
 
-        scoll.end();
-        flex.end();
-    }
+    //     scoll.end();
+    //     flex.end();
+    // }
 
     // empty flex
     {

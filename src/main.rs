@@ -30,7 +30,7 @@ async fn main() {
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
     let window_width: i32 = 400;
-    let window_height: i32 = 600;
+    let window_height: i32 = 150;
 
     let mut window = Window::new(100, 100, window_width, window_height, APP_NAME);
 
