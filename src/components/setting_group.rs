@@ -1,7 +1,7 @@
 use fltk::{
     button::Button,
     dialog::{FileDialog, FileDialogType},
-    group::Group,
+    group::{Flex, Group},
     prelude::*,
 };
 
@@ -12,29 +12,43 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
 
     let setting_group = Group::new(0, group_top_margin, window_width, window_height, "Setting");
 
-    let button_top_margin = 15;
-    let button_left_margin = 15;
+    let mut global_flex = Flex::new(0, 30, window_width, window_height, None);
 
-    let browse_button_width = 120;
-    let browse_button_height = 40;
-    let mut browse_button = Button::new(
-        button_left_margin,
-        group_top_margin + button_top_margin,
-        browse_button_width,
-        browse_button_height,
-        "Choose Folder",
-    );
+    global_flex.set_margin(15);
 
-    browse_button.set_callback(move |_| {
-        let mut file_dialog = FileDialog::new(FileDialogType::BrowseDir);
-        file_dialog.show();
-        let path = file_dialog.filename();
+    {
+        let mut flex = Flex::default().row();
 
-        let mut state = state.lock().unwrap();
-        state.set_directory_path(path);
-        state.write_to_config_file();
-        state.read_music_list();
-    });
+        let browse_button_width = 120;
+        let browse_button_height = 40;
+        let mut browse_button = Button::default();
+        browse_button.set_label("Choose Folder");
+
+        global_flex.set_size(&mut flex, browse_button_height);
+        flex.set_size(&mut browse_button, browse_button_width);
+
+        flex.end();
+
+        browse_button.set_callback(move |_| {
+            let mut file_dialog = FileDialog::new(FileDialogType::BrowseDir);
+            file_dialog.show();
+            let path = file_dialog.filename();
+
+            let mut state = state.lock().unwrap();
+            state.set_directory_path(path);
+            state.write_to_config_file();
+            state.read_music_list();
+        });
+    }
+
+    // empty flex
+    {
+        let flex = Flex::default().row();
+
+        flex.end();
+    }
+
+    global_flex.end();
 
     setting_group.end();
     setting_group
