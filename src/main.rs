@@ -6,7 +6,7 @@ mod utils;
 use std::sync::{mpsc, Arc};
 
 use constants::name::APP_NAME;
-use fltk::enums::{Color, Event};
+use fltk::enums::Event;
 use fltk::{app, group::Tabs, prelude::*, window::Window};
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
@@ -39,26 +39,30 @@ async fn main() {
     window.end();
     window.show();
 
+    // Window가 종료되면 프로그램도 종료하게 처리
     let _window_closed = Arc::new(std::sync::atomic::AtomicBool::new(false));
 
-    let window_closed = Arc::clone(&_window_closed);
-    let event_sender = _event_sender.clone();
+    {
+        let window_closed = Arc::clone(&_window_closed);
+        let event_sender = _event_sender.clone();
 
-    window.set_callback(move |w| {
-        // handle custom cleanup
-        if app::event() == Event::Close {
-            w.hide();
+        window.set_callback(move |w| {
+            // handle custom cleanup
+            if app::event() == Event::Close {
+                w.hide();
 
-            window_closed.store(true, std::sync::atomic::Ordering::Relaxed);
+                window_closed.store(true, std::sync::atomic::Ordering::Relaxed);
 
-            if let Err(error) = event_sender.send(ClientEvent::Exit) {
-                println!("{:?}", error);
+                if let Err(error) = event_sender.send(ClientEvent::Exit) {
+                    println!("{:?}", error);
+                }
             }
-        }
-    });
+        });
+    }
 
     let window_closed = Arc::clone(&_window_closed);
 
+    // 백그라운드 이벤트 리시버
     let _event_listner_task = tokio::spawn(async move {
         let (_stream, handle) = rodiogaga::OutputStream::try_default().unwrap();
         let sink = rodiogaga::Sink::try_new(&handle).unwrap();
@@ -152,6 +156,7 @@ async fn main() {
     let window_closed = Arc::clone(&_window_closed);
     let event_sender = _event_sender.clone();
 
+    // 일정 시간 간격으로 IntervalCheck 이벤트만 발생시켜주는 간단한 태스크
     let _background_task = tokio::spawn(async move {
         if let Err(error) = event_sender.send(ClientEvent::Start) {
             println!("{:?}", error);
