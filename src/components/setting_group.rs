@@ -5,14 +5,15 @@ use fltk::{
     prelude::*,
 };
 
-use crate::types::state::SharedState;
+use crate::{constants::color::BACKGROUND_COLOR, types::state::SharedState};
 
 pub fn create_setting_group(state: SharedState, window_width: i32, window_height: i32) -> Group {
     let group_top_margin = 30;
 
     let setting_group = Group::new(0, group_top_margin, window_width, window_height, "Setting");
 
-    let mut global_flex = Flex::new(0, 30, window_width, window_height, None);
+    let mut global_flex = Flex::new(0, group_top_margin, window_width, window_height, None);
+    global_flex.set_color(BACKGROUND_COLOR);
 
     global_flex.set_margin(15);
 

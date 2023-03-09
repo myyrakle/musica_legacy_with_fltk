@@ -28,7 +28,7 @@ async fn main() {
 
     let mut window = Window::new(100, 100, window_width, window_height, APP_NAME);
 
-    let mut tabs = Tabs::new(0, 0, window_width, window_height, "main");
+    let mut tabs = Tabs::new(0, 0, window_width, window_height, None);
 
     let main_group = create_main_group(Arc::clone(&state), window_width, window_height);
     let setting_group = create_setting_group(Arc::clone(&state), window_width, window_height);

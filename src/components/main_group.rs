@@ -1,6 +1,11 @@
 use std::sync::Arc;
 
-use fltk::{button::Button, group::Group, prelude::*};
+use fltk::{
+    button::Button,
+    enums::Align,
+    group::{Flex, Group},
+    prelude::*,
+};
 
 use crate::types::{client_event::ClientEvent, music_status::MusicPlayStatus, state::SharedState};
 
@@ -11,80 +16,84 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
 
     let main_group = Group::new(0, group_top_margin, window_width, window_height, "Main");
 
-    let button_top_margin = 3;
-    let button_left_margin = 3;
+    let mut global_flex = Flex::new(0, group_top_margin, window_width, window_height, None);
 
-    let left_button_width = 40;
-    let left_button_height = 40;
-    let mut left_button = Button::new(
-        button_left_margin,
-        group_top_margin + button_top_margin,
-        left_button_width,
-        left_button_height,
-        "⏮️",
-    );
+    global_flex.set_margin(15);
 
-    let stop_button_width = 40;
-    let stop_button_height = 40;
-    let mut stop_button = Button::new(
-        button_left_margin + left_button_width + button_left_margin,
-        group_top_margin + button_top_margin,
-        stop_button_width,
-        stop_button_height,
-        "⏸️",
-    );
+    // 첫째 열
+    {
+        let mut flex = Flex::default().row();
+        flex.set_align(Align::Center);
 
-    let right_button_width = 40;
-    let right_button_height = 40;
-    let mut right_button = Button::new(
-        button_left_margin
-            + left_button_width
-            + button_left_margin
-            + stop_button_width
-            + button_left_margin,
-        group_top_margin + button_top_margin,
-        right_button_width,
-        right_button_height,
-        "⏭️",
-    );
+        let buttons_width = 40;
+        let buttons_height = 40;
 
-    let _state = Arc::clone(&state_);
-    left_button.set_callback(move |_| {});
+        // left space
+        Flex::default().end();
 
-    let state = Arc::clone(&state_);
-    let event_sender = _event_sender.clone();
+        let mut left_button = Button::default().with_label("⏮️");
 
-    stop_button.set_callback(move |_| match state.lock().unwrap().status {
-        MusicPlayStatus::Stopped => {
-            if let Err(error) = event_sender.send(ClientEvent::Start) {
+        let mut stop_button = Button::default().with_label("⏸️");
+
+        let mut right_button = Button::default().with_label("⏭️");
+
+        // right space
+        Flex::default().end();
+
+        global_flex.set_size(&mut flex, buttons_height);
+        flex.set_size(&mut left_button, buttons_width);
+        flex.set_size(&mut stop_button, buttons_width);
+        flex.set_size(&mut right_button, buttons_width);
+
+        let _state = Arc::clone(&state_);
+        left_button.set_callback(move |_| {});
+
+        let state = Arc::clone(&state_);
+        let event_sender = _event_sender.clone();
+
+        stop_button.set_callback(move |_| match state.lock().unwrap().status {
+            MusicPlayStatus::Stopped => {
+                if let Err(error) = event_sender.send(ClientEvent::Start) {
+                    println!("{:?}", error);
+                }
+            }
+            MusicPlayStatus::Playing => {
+                if let Err(error) = event_sender.send(ClientEvent::Stop) {
+                    println!("{:?}", error);
+                }
+            }
+            MusicPlayStatus::Paused => {
+                if let Err(error) = event_sender.send(ClientEvent::Resume) {
+                    println!("{:?}", error);
+                }
+            }
+        });
+
+        let event_sender = _event_sender.clone();
+        left_button.set_callback(move |_| {
+            if let Err(error) = event_sender.send(ClientEvent::Left) {
                 println!("{:?}", error);
             }
-        }
-        MusicPlayStatus::Playing => {
-            if let Err(error) = event_sender.send(ClientEvent::Stop) {
+        });
+
+        let event_sender = _event_sender.clone();
+        right_button.set_callback(move |_| {
+            if let Err(error) = event_sender.send(ClientEvent::Right) {
                 println!("{:?}", error);
             }
-        }
-        MusicPlayStatus::Paused => {
-            if let Err(error) = event_sender.send(ClientEvent::Resume) {
-                println!("{:?}", error);
-            }
-        }
-    });
+        });
 
-    let event_sender = _event_sender.clone();
-    left_button.set_callback(move |_| {
-        if let Err(error) = event_sender.send(ClientEvent::Left) {
-            println!("{:?}", error);
-        }
-    });
+        flex.end();
+    }
 
-    let event_sender = _event_sender.clone();
-    right_button.set_callback(move |_| {
-        if let Err(error) = event_sender.send(ClientEvent::Right) {
-            println!("{:?}", error);
-        }
-    });
+    // empty flex
+    {
+        let flex = Flex::default().row();
+
+        flex.end();
+    }
+
+    global_flex.end();
 
     main_group.end();
     main_group
