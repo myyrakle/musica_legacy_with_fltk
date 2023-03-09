@@ -15,11 +15,13 @@ use crate::types::{ClientEvent, MusicPlayStatus, State};
 #[tokio::main]
 async fn main() {
     let (_event_sender, event_receiver) = mpsc::channel::<ClientEvent>();
+    let (_title_sender, title_receiver) = mpsc::channel::<String>();
 
     let event_sender = _event_sender.clone();
+    let title_sender = _title_sender.clone();
 
-    let state = State::new(event_sender);
-    state.try_lock().unwrap().read_music_list();
+    let state = State::new(event_sender, title_sender);
+    state.lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
@@ -30,7 +32,12 @@ async fn main() {
 
     let mut tabs = Tabs::new(0, 0, window_width, window_height, None);
 
-    let main_group = create_main_group(Arc::clone(&state), window_width, window_height);
+    let main_group = create_main_group(
+        Arc::clone(&state),
+        window_width,
+        window_height,
+        title_receiver,
+    );
     let setting_group = create_setting_group(Arc::clone(&state), window_width, window_height);
 
     tabs.add(&main_group);
@@ -77,7 +84,7 @@ async fn main() {
 
                 match event {
                     ClientEvent::Start => {
-                        if let Ok(mut state) = state.try_lock() {
+                        if let Ok(mut state) = state.lock() {
                             if let Some(source) = state.get_current_source() {
                                 sink.append(source);
                                 state.status = MusicPlayStatus::Playing;
@@ -85,19 +92,19 @@ async fn main() {
                         }
                     }
                     ClientEvent::Resume => {
-                        if let Ok(mut state) = state.try_lock() {
+                        if let Ok(mut state) = state.lock() {
                             sink.play();
                             state.status = MusicPlayStatus::Playing;
                         }
                     }
                     ClientEvent::Stop => {
-                        if let Ok(mut state) = state.try_lock() {
+                        if let Ok(mut state) = state.lock() {
                             sink.pause();
                             state.status = MusicPlayStatus::Paused;
                         }
                     }
                     ClientEvent::Left => {
-                        if let Ok(mut state) = state.try_lock() {
+                        if let Ok(mut state) = state.lock() {
                             let status = state.status.to_owned();
 
                             // 이전 곡 재생
@@ -115,7 +122,7 @@ async fn main() {
                         }
                     }
                     ClientEvent::Right => {
-                        if let Ok(mut state) = state.try_lock() {
+                        if let Ok(mut state) = state.lock() {
                             let status = state.status.to_owned();
 
                             // 다음 곡 재생
@@ -133,7 +140,7 @@ async fn main() {
                         }
                     }
                     ClientEvent::IntervalCheck => {
-                        if let Ok(mut state) = state.try_lock() {
+                        if let Ok(mut state) = state.lock() {
                             let status = state.status.to_owned();
 
                             // 기존 재생이 끝났을 경우 다음 곡 재생

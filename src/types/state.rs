@@ -20,6 +20,7 @@ use super::{
 pub struct State {
     pub config: Config,
     pub event_sender: Sender<ClientEvent>,
+    pub title_sender: Sender<String>,
     pub file_list: Vec<FileInfo>,
     pub current_index: usize,
     pub play_queue: VecDeque<FileInfo>,
@@ -27,13 +28,14 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(event_sender: Sender<ClientEvent>) -> SharedState {
+    pub fn new(event_sender: Sender<ClientEvent>, title_sender: Sender<String>) -> SharedState {
         Arc::new(Mutex::new(Self {
             config: State::load_from_config_file().unwrap_or(Config::default()),
             file_list: vec![],
             current_index: 0,
             play_queue: VecDeque::new(),
             event_sender,
+            title_sender,
             status: MusicPlayStatus::Stopped,
         }))
     }
@@ -92,7 +94,10 @@ impl State {
 
     pub fn get_current_source(&self) -> Option<Decoder<BufReader<File>>> {
         let file_info = self.get_current_file()?;
+
+        self.title_sender.send(file_info.filename).ok();
         let file = File::open(file_info.filepath).ok()?;
+
         let buffer = BufReader::new(file);
         let source = Decoder::new(buffer).ok()?;
 
