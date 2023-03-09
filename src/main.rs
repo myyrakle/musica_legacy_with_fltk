@@ -1,13 +1,16 @@
 mod components;
 mod constants;
 mod errors;
+mod resources;
 mod types;
 mod utils;
 use std::sync::{mpsc, Arc};
 
 use constants::name::APP_NAME;
 use fltk::enums::Event;
+use fltk::image::PngImage;
 use fltk::{app, group::Tabs, prelude::*, window::Window};
+use resources::get_rust_logo_data;
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
 use crate::types::{ClientEvent, MusicPlayStatus, State};
@@ -33,6 +36,7 @@ async fn main() {
     let window_height: i32 = 150;
 
     let mut window = Window::new(100, 100, window_width, window_height, APP_NAME);
+    window.set_icon(PngImage::from_data(&get_rust_logo_data()).ok());
 
     let mut tabs = Tabs::new(0, 0, window_width, window_height, None);
 
