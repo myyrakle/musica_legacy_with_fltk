@@ -16,13 +16,15 @@ use crate::types::{ClientEvent, MusicPlayStatus, State};
 async fn main() {
     let (_event_sender, event_receiver) = mpsc::channel::<ClientEvent>();
     let (_title_sender, title_receiver) = mpsc::channel::<String>();
+    let (_directory_sender, directory_receiver) = mpsc::channel::<String>();
     let _window_closed = Arc::new(std::sync::atomic::AtomicBool::new(false));
 
     let event_sender = _event_sender.clone();
     let title_sender = _title_sender.clone();
+    let directory_sender = _directory_sender.clone();
     let window_closed = Arc::clone(&_window_closed);
 
-    let state = State::new(event_sender, title_sender, window_closed);
+    let state = State::new(event_sender, title_sender, directory_sender, window_closed);
     state.lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
@@ -40,7 +42,12 @@ async fn main() {
         window_height,
         title_receiver,
     );
-    let setting_group = create_setting_group(Arc::clone(&state), window_width, window_height);
+    let setting_group = create_setting_group(
+        Arc::clone(&state),
+        window_width,
+        window_height,
+        directory_receiver,
+    );
 
     tabs.add(&main_group);
     tabs.add(&setting_group);

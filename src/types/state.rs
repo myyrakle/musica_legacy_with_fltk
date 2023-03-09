@@ -21,6 +21,7 @@ pub struct State {
     pub config: Config,
     pub event_sender: Sender<ClientEvent>,
     pub title_sender: Sender<String>,
+    pub directory_sender: Sender<String>,
     pub window_closed: Arc<AtomicBool>,
     pub file_list: Vec<FileInfo>,
     pub current_index: usize,
@@ -32,18 +33,30 @@ impl State {
     pub fn new(
         event_sender: Sender<ClientEvent>,
         title_sender: Sender<String>,
+        directory_sender: Sender<String>,
         window_closed: Arc<AtomicBool>,
     ) -> SharedState {
-        Arc::new(Mutex::new(Self {
+        let this = Arc::new(Mutex::new(Self {
             config: State::load_from_config_file().unwrap_or(Config::default()),
             file_list: vec![],
             current_index: 0,
             play_queue: VecDeque::new(),
             event_sender,
             title_sender,
+            directory_sender,
             window_closed,
             status: MusicPlayStatus::Stopped,
-        }))
+        }));
+
+        {
+            let this = this.lock().unwrap();
+
+            this.directory_sender
+                .send(this.config.directory_path.to_str().unwrap().to_string())
+                .ok();
+        }
+
+        this
     }
 
     pub fn set_directory_path(&mut self, directory_path: PathBuf) {
@@ -79,6 +92,10 @@ impl State {
             .unwrap();
 
         let json_string = serde_json::to_string(&self.config).unwrap();
+
+        self.directory_sender
+            .send(self.config.directory_path.to_str().unwrap().to_string())
+            .ok();
 
         file.write_all(json_string.as_bytes()).unwrap();
     }

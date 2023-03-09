@@ -1,13 +1,25 @@
+use std::{
+    sync::{mpsc::Receiver, Arc},
+    time::Duration,
+};
+
 use fltk::{
     button::Button,
     dialog::{FileDialog, FileDialogType},
+    enums::Align,
+    frame::Frame,
     group::{Flex, Group},
     prelude::*,
 };
 
 use crate::types::state::SharedState;
 
-pub fn create_setting_group(state: SharedState, window_width: i32, window_height: i32) -> Group {
+pub fn create_setting_group(
+    state_: SharedState,
+    window_width: i32,
+    window_height: i32,
+    directory_receiver: Receiver<String>,
+) -> Group {
     let group_top_margin = 30;
 
     let setting_group = Group::new(0, group_top_margin, window_width, window_height, "Setting");
@@ -15,6 +27,39 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
     let mut global_flex = Flex::new(0, group_top_margin, window_width, window_height, None);
 
     global_flex.set_margin(15);
+    global_flex.set_pad(15);
+
+    // current directory
+    {
+        let mut flex = Flex::default().column();
+
+        let mut frame = Frame::default()
+            .with_label("none")
+            .with_align(Align::Left | Align::Inside);
+
+        global_flex.set_size(&mut flex, 20);
+
+        let window_closed = Arc::clone(&state_.lock().unwrap().window_closed);
+
+        tokio::spawn(async move {
+            loop {
+                if window_closed.load(std::sync::atomic::Ordering::Relaxed) {
+                    break;
+                }
+
+                match directory_receiver.recv_timeout(Duration::from_millis(1000)) {
+                    Ok(title) => {
+                        frame.set_label(title.as_str());
+                    }
+                    Err(error) => {
+                        println!("{:?}", error);
+                    }
+                }
+            }
+        });
+
+        flex.end();
+    }
 
     {
         let mut flex = Flex::default().row();
@@ -34,7 +79,7 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
             file_dialog.show();
             let path = file_dialog.filename();
 
-            if let Ok(mut state) = state.lock() {
+            if let Ok(mut state) = state_.lock() {
                 state.set_directory_path(path);
                 state.write_to_config_file();
                 state.read_music_list();
