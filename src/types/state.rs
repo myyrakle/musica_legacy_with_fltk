@@ -8,7 +8,7 @@ use std::{
 
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use rodiogaga::Decoder;
+use rodio::Decoder;
 
 use crate::utils::read_file_list;
 
@@ -121,6 +121,7 @@ impl State {
         let file = File::open(file_info.filepath).ok()?;
 
         let buffer = BufReader::new(file);
+        println!("buffer: {}", buffer.capacity());
         let source = Decoder::new(buffer).ok()?;
 
         Some(source)
