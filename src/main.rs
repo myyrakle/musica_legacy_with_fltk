@@ -5,6 +5,7 @@ mod types;
 mod utils;
 use std::sync::{mpsc, Arc};
 
+use constants::name::APP_NAME;
 use fltk::enums::{Color, Event};
 use fltk::{app, group::Tabs, prelude::*, window::Window};
 
@@ -25,7 +26,7 @@ async fn main() {
     let window_width: i32 = 400;
     let window_height: i32 = 600;
 
-    let mut window = Window::new(100, 100, window_width, window_height, "musica");
+    let mut window = Window::new(100, 100, window_width, window_height, APP_NAME);
 
     let mut tabs = Tabs::new(0, 0, window_width, window_height, "main");
 
