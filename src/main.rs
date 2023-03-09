@@ -19,7 +19,7 @@ async fn main() {
     let event_sender = _event_sender.clone();
 
     let state = State::new(event_sender);
-    state.lock().unwrap().read_music_list();
+    state.try_lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
 
@@ -77,70 +77,73 @@ async fn main() {
 
                 match event {
                     ClientEvent::Start => {
-                        let mut state = state.lock().unwrap();
-
-                        if let Some(source) = state.get_current_source() {
-                            sink.append(source);
-                            state.status = MusicPlayStatus::Playing;
+                        if let Ok(mut state) = state.try_lock() {
+                            if let Some(source) = state.get_current_source() {
+                                sink.append(source);
+                                state.status = MusicPlayStatus::Playing;
+                            }
                         }
                     }
                     ClientEvent::Resume => {
-                        let mut state = state.lock().unwrap();
-
-                        sink.play();
-                        state.status = MusicPlayStatus::Playing;
+                        if let Ok(mut state) = state.try_lock() {
+                            sink.play();
+                            state.status = MusicPlayStatus::Playing;
+                        }
                     }
                     ClientEvent::Stop => {
-                        let mut state = state.lock().unwrap();
-
-                        sink.pause();
-                        state.status = MusicPlayStatus::Paused;
+                        if let Ok(mut state) = state.try_lock() {
+                            sink.pause();
+                            state.status = MusicPlayStatus::Paused;
+                        }
                     }
                     ClientEvent::Left => {
-                        let mut state = state.lock().unwrap();
-                        let status = state.status.to_owned();
+                        if let Ok(mut state) = state.try_lock() {
+                            let status = state.status.to_owned();
 
-                        // 이전 곡 재생
-                        if let MusicPlayStatus::Playing = status {
-                            sink.stop();
-                            while !sink.empty() {}
+                            // 이전 곡 재생
+                            if let MusicPlayStatus::Playing = status {
+                                sink.stop();
+                                while !sink.empty() {}
 
-                            state.index_to_left();
+                                state.index_to_left();
 
-                            if let Some(source) = state.get_current_source() {
-                                sink.append(source);
-                                sink.play();
+                                if let Some(source) = state.get_current_source() {
+                                    sink.append(source);
+                                    sink.play();
+                                }
                             }
                         }
                     }
                     ClientEvent::Right => {
-                        let mut state = state.lock().unwrap();
-                        let status = state.status.to_owned();
+                        if let Ok(mut state) = state.try_lock() {
+                            let status = state.status.to_owned();
 
-                        // 다음 곡 재생
-                        if let MusicPlayStatus::Playing = status {
-                            sink.stop();
-                            while !sink.empty() {}
+                            // 다음 곡 재생
+                            if let MusicPlayStatus::Playing = status {
+                                sink.stop();
+                                while !sink.empty() {}
 
-                            state.index_to_right();
-
-                            if let Some(source) = state.get_current_source() {
-                                sink.append(source);
-                                sink.play();
-                            }
-                        }
-                    }
-                    ClientEvent::IntervalCheck => {
-                        let mut state = state.lock().unwrap();
-                        let status = state.status.to_owned();
-
-                        // 기존 재생이 끝났을 경우 다음 곡 재생
-                        if let MusicPlayStatus::Playing = status {
-                            if sink.empty() {
                                 state.index_to_right();
 
                                 if let Some(source) = state.get_current_source() {
                                     sink.append(source);
+                                    sink.play();
+                                }
+                            }
+                        }
+                    }
+                    ClientEvent::IntervalCheck => {
+                        if let Ok(mut state) = state.try_lock() {
+                            let status = state.status.to_owned();
+
+                            // 기존 재생이 끝났을 경우 다음 곡 재생
+                            if let MusicPlayStatus::Playing = status {
+                                if sink.empty() {
+                                    state.index_to_right();
+
+                                    if let Some(source) = state.get_current_source() {
+                                        sink.append(source);
+                                    }
                                 }
                             }
                         }

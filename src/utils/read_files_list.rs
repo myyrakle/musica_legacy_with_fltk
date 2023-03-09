@@ -12,7 +12,11 @@ pub fn read_file_list(path: &Path) -> Result<Vec<FileInfo>, CommonError> {
             if let Ok(metadata) = read_dir_entry.metadata() {
                 if metadata.is_file() {
                     let filepath = read_dir_entry.path();
-                    let filename = read_dir_entry.file_name().to_str().unwrap().to_owned();
+                    let filename = read_dir_entry
+                        .file_name()
+                        .to_str()
+                        .unwrap_or("error")
+                        .to_owned();
                     file_list.push(FileInfo { filename, filepath })
                 }
             }

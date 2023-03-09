@@ -6,7 +6,6 @@ use fltk::{
     frame::Frame,
     group::{Flex, Group, Scroll},
     prelude::*,
-    text::TextDisplay,
 };
 
 use crate::types::{client_event::ClientEvent, music_status::MusicPlayStatus, state::SharedState};
@@ -31,9 +30,29 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
             .with_label("none")
             .with_align(Align::Center);
 
-        frame.set_changed();
-
         global_flex.set_size(&mut flex, 20);
+
+        let state = Arc::clone(&state_);
+        tokio::spawn(async move {
+            loop {
+                println!("title backgroud loop");
+                {
+                    match state.try_lock() {
+                        Ok(state) => {
+                            if let Some(file) = state.get_current_file() {
+                                frame.set_label(file.filename.as_str());
+                            }
+                        }
+                        Err(error) => {
+                            println!("{:?}", error);
+                        }
+                    }
+                }
+
+                std::thread::sleep(std::time::Duration::from_millis(1000));
+            }
+        });
+
         flex.end();
     }
 
@@ -68,7 +87,7 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
         let state = Arc::clone(&state_);
         let event_sender = _event_sender.clone();
 
-        stop_button.set_callback(move |_| match state.lock().unwrap().status {
+        stop_button.set_callback(move |_| match state.try_lock().unwrap().status {
             MusicPlayStatus::Stopped => {
                 if let Err(error) = event_sender.send(ClientEvent::Start) {
                     println!("{:?}", error);
