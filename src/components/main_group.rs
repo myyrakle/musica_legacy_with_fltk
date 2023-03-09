@@ -3,8 +3,10 @@ use std::sync::Arc;
 use fltk::{
     button::Button,
     enums::Align,
-    group::{Flex, Group},
+    frame::Frame,
+    group::{Flex, Group, Scroll},
     prelude::*,
+    text::TextDisplay,
 };
 
 use crate::types::{client_event::ClientEvent, music_status::MusicPlayStatus, state::SharedState};
@@ -19,8 +21,23 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
     let mut global_flex = Flex::new(0, group_top_margin, window_width, window_height, None);
 
     global_flex.set_margin(15);
+    global_flex.set_pad(15);
 
-    // 첫째 열
+    // current music title
+    {
+        let mut flex = Flex::default().column();
+
+        let mut frame = Frame::default()
+            .with_label("none")
+            .with_align(Align::Center);
+
+        frame.set_changed();
+
+        global_flex.set_size(&mut flex, 20);
+        flex.end();
+    }
+
+    // 제어 버튼 열
     {
         let mut flex = Flex::default().row();
         flex.set_align(Align::Center);
@@ -83,6 +100,20 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
             }
         });
 
+        flex.end();
+    }
+
+    {
+        let flex = Flex::default().column();
+        let scoll = Scroll::default();
+
+        let button = Button::default().with_label("test");
+
+        //
+
+        //
+
+        scoll.end();
         flex.end();
     }
 
