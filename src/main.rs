@@ -1,10 +1,11 @@
 mod components;
+mod constants;
 mod errors;
 mod types;
 mod utils;
 use std::sync::{mpsc, Arc};
 
-use fltk::enums::Event;
+use fltk::enums::{Color, Event};
 use fltk::{app, group::Tabs, prelude::*, window::Window};
 
 use crate::components::{main_group::create_main_group, setting_group::create_setting_group};
