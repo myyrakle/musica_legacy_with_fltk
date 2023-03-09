@@ -19,10 +19,10 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
     {
         let mut flex = Flex::default().row();
 
-        let browse_button_width = 120;
+        let browse_button_width = 140;
         let browse_button_height = 40;
         let mut browse_button = Button::default();
-        browse_button.set_label("Choose Folder");
+        browse_button.set_label("@fileopen Choose Folder");
 
         global_flex.set_size(&mut flex, browse_button_height);
         flex.set_size(&mut browse_button, browse_button_width);
