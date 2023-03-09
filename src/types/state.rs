@@ -94,7 +94,6 @@ impl State {
 
     pub fn get_current_source(&self) -> Option<Decoder<BufReader<File>>> {
         let file_info = self.get_current_file()?;
-
         self.title_sender.send(file_info.filename).ok();
         let file = File::open(file_info.filepath).ok()?;
 

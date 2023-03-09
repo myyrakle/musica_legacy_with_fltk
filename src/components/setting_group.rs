@@ -35,12 +35,9 @@ pub fn create_setting_group(state: SharedState, window_width: i32, window_height
             let path = file_dialog.filename();
 
             if let Ok(mut state) = state.lock() {
-                println!("안되나?");
                 state.set_directory_path(path);
                 state.write_to_config_file();
                 state.read_music_list();
-            } else {
-                println!("????");
             }
         });
     }
