@@ -78,8 +78,8 @@ async fn main() {
 
     // 백그라운드 이벤트 리시버
     let _event_listner_task = tokio::spawn(async move {
-        let (_stream, handle) = rodio::OutputStream::try_default().unwrap();
-        let sink = rodio::Sink::try_new(&handle).unwrap();
+        let (_stream, handle) = rodiogaga::OutputStream::try_default().unwrap();
+        let sink = rodiogaga::Sink::try_new(&handle).unwrap();
 
         loop {
             if window_closed.load(std::sync::atomic::Ordering::Relaxed) {
@@ -156,7 +156,8 @@ async fn main() {
                                     state.index_to_right();
 
                                     if let Some(source) = state.get_current_source() {
-                                        //sink.append(source);
+                                        sink.append(source);
+                                        sink.play();
                                     }
                                 }
                             }
