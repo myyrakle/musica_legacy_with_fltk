@@ -48,11 +48,11 @@ pub fn create_main_group(state_: SharedState, window_width: i32, window_height: 
         // left space
         Flex::default().end();
 
-        let mut left_button = Button::default().with_label("⏮️");
+        let mut left_button = Button::default().with_label("@<-");
 
-        let mut stop_button = Button::default().with_label("⏸️");
+        let mut stop_button = Button::default().with_label("@||");
 
-        let mut right_button = Button::default().with_label("⏭️");
+        let mut right_button = Button::default().with_label("@->");
 
         // right space
         Flex::default().end();
