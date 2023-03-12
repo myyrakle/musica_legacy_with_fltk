@@ -131,6 +131,8 @@ impl State {
         self.file_list = list;
         self.play_queue = VecDeque::from(self.file_list.clone());
 
+        self.ramdomize_play_queue();
+
         Some(())
     }
 
