@@ -6,6 +6,7 @@ mod errors;
 mod resources;
 mod types;
 mod utils;
+use std::process::exit;
 use std::sync::{mpsc, Arc};
 
 use constants::name::APP_NAME;
@@ -22,14 +23,12 @@ async fn main() {
     let (_event_sender, event_receiver) = mpsc::channel::<ClientEvent>();
     let (_title_sender, title_receiver) = mpsc::channel::<String>();
     let (_directory_sender, directory_receiver) = mpsc::channel::<String>();
-    let _window_closed = Arc::new(std::sync::atomic::AtomicBool::new(false));
 
     let event_sender = _event_sender.clone();
     let title_sender = _title_sender.clone();
     let directory_sender = _directory_sender.clone();
-    let window_closed = Arc::clone(&_window_closed);
 
-    let state = State::new(event_sender, title_sender, directory_sender, window_closed);
+    let state = State::new(event_sender, title_sender, directory_sender);
     state.lock().unwrap().read_music_list();
 
     let app = app::App::default().with_scheme(app::Scheme::Gtk);
@@ -63,24 +62,15 @@ async fn main() {
 
     // Window가 종료되면 프로그램도 종료하게 처리
     {
-        let window_closed = Arc::clone(&_window_closed);
-        let event_sender = _event_sender.clone();
-
         window.set_callback(move |w| {
             // handle custom cleanup
             if app::event() == Event::Close {
                 w.hide();
 
-                window_closed.store(true, std::sync::atomic::Ordering::Relaxed);
-
-                if let Err(error) = event_sender.send(ClientEvent::Exit) {
-                    println!("{:?}", error);
-                }
+                exit(0);
             }
         });
     }
-
-    let window_closed = Arc::clone(&_window_closed);
 
     // 백그라운드 이벤트 리시버
     let _event_listner_task = tokio::spawn(async move {
@@ -88,10 +78,6 @@ async fn main() {
         let sink = rodiogaga::Sink::try_new(&handle).unwrap();
 
         loop {
-            if window_closed.load(std::sync::atomic::Ordering::Relaxed) {
-                break;
-            }
-
             if let Ok(event) = event_receiver.recv() {
                 println!("@ event: {:?}, {}, {}", event, sink.is_paused(), sink.len());
 
@@ -169,15 +155,11 @@ async fn main() {
                             }
                         }
                     }
-                    ClientEvent::Exit => {
-                        break;
-                    }
                 }
             }
         }
     });
 
-    let window_closed = Arc::clone(&_window_closed);
     let event_sender = _event_sender.clone();
 
     // 일정 시간 간격으로 IntervalCheck 이벤트만 발생시켜주는 간단한 태스크
@@ -189,16 +171,25 @@ async fn main() {
         loop {
             println!("backgroud loop");
 
-            if window_closed.load(std::sync::atomic::Ordering::Relaxed) {
-                break;
-            }
-
             if let Err(error) = event_sender.send(ClientEvent::IntervalCheck) {
                 println!("{:?}", error);
             }
 
             std::thread::sleep(std::time::Duration::from_millis(500));
         }
+    });
+
+    // hotkey 태스크
+    let _hotkey_task = tokio::spawn(async move {
+        let mut hk = hotkey::Listener::new();
+        hk.register_hotkey(
+            hotkey::modifiers::CONTROL,
+            hotkey::keys::ARROW_RIGHT,
+            || println!("Ctrl-Shift-A pressed!"),
+        )
+        .unwrap();
+
+        hk.listen();
     });
 
     app.run().expect("실행 실패");

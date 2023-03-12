@@ -3,7 +3,7 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{BufReader, Write},
     path::PathBuf,
-    sync::{atomic::AtomicBool, mpsc::Sender, Arc, Mutex},
+    sync::{mpsc::Sender, Arc, Mutex},
 };
 
 use rand::seq::SliceRandom;
@@ -22,7 +22,6 @@ pub struct State {
     pub event_sender: Sender<ClientEvent>,
     pub title_sender: Sender<String>,
     pub directory_sender: Sender<String>,
-    pub window_closed: Arc<AtomicBool>,
     pub file_list: Vec<FileInfo>,
     pub current_index: usize,
     pub play_queue: VecDeque<FileInfo>,
@@ -34,7 +33,6 @@ impl State {
         event_sender: Sender<ClientEvent>,
         title_sender: Sender<String>,
         directory_sender: Sender<String>,
-        window_closed: Arc<AtomicBool>,
     ) -> SharedState {
         let this = Arc::new(Mutex::new(Self {
             config: State::load_from_config_file().unwrap_or(Config::default()),
@@ -44,7 +42,6 @@ impl State {
             event_sender,
             title_sender,
             directory_sender,
-            window_closed,
             status: MusicPlayStatus::Stopped,
         }));
 
