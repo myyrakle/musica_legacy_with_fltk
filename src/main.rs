@@ -179,13 +179,50 @@ async fn main() {
         }
     });
 
+    let event_sender = _event_sender.clone();
+
     // hotkey 태스크
     let _hotkey_task = tokio::spawn(async move {
         let mut hk = hotkey::Listener::new();
+
+        let _event_sender = event_sender;
+
+        let event_sender = _event_sender.clone();
+
         hk.register_hotkey(
             hotkey::modifiers::CONTROL,
             hotkey::keys::ARROW_RIGHT,
-            || println!("Ctrl-Shift-A pressed!"),
+            move || {
+                if let Err(error) = event_sender.send(ClientEvent::Right) {
+                    println!("{:?}", error);
+                }
+            },
+        )
+        .unwrap();
+
+        let event_sender = _event_sender.clone();
+
+        hk.register_hotkey(
+            hotkey::modifiers::CONTROL,
+            hotkey::keys::ARROW_LEFT,
+            move || {
+                if let Err(error) = event_sender.send(ClientEvent::Left) {
+                    println!("{:?}", error);
+                }
+            },
+        )
+        .unwrap();
+
+        let event_sender = _event_sender.clone();
+
+        hk.register_hotkey(
+            hotkey::modifiers::CONTROL,
+            hotkey::keys::SPACEBAR,
+            move || {
+                if let Err(error) = event_sender.send(ClientEvent::Stop) {
+                    println!("{:?}", error);
+                }
+            },
         )
         .unwrap();
 
