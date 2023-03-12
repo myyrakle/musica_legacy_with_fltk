@@ -8,4 +8,4 @@
 
 - Windows
 - Linux
-- MaxOS (not yet)
+- MacOS (not yet)
