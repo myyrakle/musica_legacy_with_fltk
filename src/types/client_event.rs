@@ -1,8 +1,7 @@
 #[derive(Debug, Clone)]
 pub enum ClientEvent {
     Start,
-    Stop,
-    Resume,
+    StopOrResume,
     Left,
     Right,
     IntervalCheck,

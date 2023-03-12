@@ -90,16 +90,15 @@ async fn main() {
                             }
                         }
                     }
-                    ClientEvent::Resume => {
+                    ClientEvent::StopOrResume => {
                         if let Ok(mut state) = state.lock() {
-                            sink.play();
-                            state.status = MusicPlayStatus::Playing;
-                        }
-                    }
-                    ClientEvent::Stop => {
-                        if let Ok(mut state) = state.lock() {
-                            sink.pause();
-                            state.status = MusicPlayStatus::Paused;
+                            if sink.is_paused() {
+                                sink.play();
+                                state.status = MusicPlayStatus::Playing;
+                            } else {
+                                sink.pause();
+                                state.status = MusicPlayStatus::Paused;
+                            }
                         }
                     }
                     ClientEvent::Left => {
@@ -219,7 +218,7 @@ async fn main() {
             hotkey::modifiers::CONTROL,
             hotkey::keys::SPACEBAR,
             move || {
-                if let Err(error) = event_sender.send(ClientEvent::Stop) {
+                if let Err(error) = event_sender.send(ClientEvent::StopOrResume) {
                     println!("{:?}", error);
                 }
             },

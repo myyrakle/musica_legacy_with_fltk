@@ -87,20 +87,26 @@ pub fn create_main_group(
         let state = Arc::clone(&state_);
         let event_sender = _event_sender.clone();
 
-        stop_button.set_callback(move |_| match state.lock().unwrap().status {
+        stop_button.set_callback(move |button| match state.lock().unwrap().status {
             MusicPlayStatus::Stopped => {
                 if let Err(error) = event_sender.send(ClientEvent::Start) {
                     println!("{:?}", error);
+                } else {
+                    button.set_label("@||");
                 }
             }
             MusicPlayStatus::Playing => {
-                if let Err(error) = event_sender.send(ClientEvent::Stop) {
+                if let Err(error) = event_sender.send(ClientEvent::StopOrResume) {
                     println!("{:?}", error);
+                } else {
+                    button.set_label("@>");
                 }
             }
             MusicPlayStatus::Paused => {
-                if let Err(error) = event_sender.send(ClientEvent::Resume) {
+                if let Err(error) = event_sender.send(ClientEvent::StopOrResume) {
                     println!("{:?}", error);
+                } else {
+                    button.set_label("@||");
                 }
             }
         });
